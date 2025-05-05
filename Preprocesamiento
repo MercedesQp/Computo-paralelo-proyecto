@@ -1,0 +1,80 @@
+import os
+import csv
+import shutil
+import librosa
+import numpy as np
+import multiprocessing as mp
+import time
+
+TRANSCRIPT_PATH = "transcript.txt"
+AUDIO_BASE_PATH = "Dataset"
+RAW_AUDIO_DIR = "data/raw"
+FEATURES_DIR = "data/processed"
+LABELS_CSV = "data/labels.csv"
+SAMPLE_RATE = 16000
+N_MFCC = 13
+FRAME_LENGTH = 0.025
+FRAME_STEP = 0.010
+
+def prepare_labels_from_transcript():
+    rows = []
+    os.makedirs(RAW_AUDIO_DIR, exist_ok=True)
+
+    with open(TRANSCRIPT_PATH, "r", encoding="utf-8") as f:
+        for line in f:
+            parts = line.strip().split("|")
+            if len(parts) < 1:
+                continue
+            filepath = parts[0]
+            label = filepath.split("/")[0]
+            filename = os.path.basename(filepath)
+            src = os.path.join(AUDIO_BASE_PATH, filepath)
+            dst = os.path.join(RAW_AUDIO_DIR, filename)
+            if os.path.exists(src):
+                shutil.copy2(src, dst)
+                rows.append((filename, label))
+            else:
+                print(f"Archivo no encontrado: {src}")
+
+    os.makedirs("data", exist_ok=True)
+    with open(LABELS_CSV, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["filename", "label"])
+        writer.writerows(rows)
+
+    print(f"\nlabels.csv generado con {len(rows)} registros.")
+    return len(rows)
+
+def extract_single_mfcc(path):
+    signal, sr = librosa.load(path, sr=SAMPLE_RATE)
+    mfcc = librosa.feature.mfcc(y=signal, sr=sr, n_mfcc=N_MFCC,
+                                hop_length=int(FRAME_STEP * sr),
+                                n_fft=int(FRAME_LENGTH * sr))
+    mfcc = mfcc.T
+    return (mfcc - np.mean(mfcc, axis=0)) / np.std(mfcc, axis=0)
+
+def extract_mfcc(mode='sequential'):
+    os.makedirs(FEATURES_DIR, exist_ok=True)
+    with open(LABELS_CSV, "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader)
+        entries = list(reader)
+
+    def process_and_save(entry):
+        fname, _ = entry
+        path = os.path.join(RAW_AUDIO_DIR, fname)
+        if os.path.exists(path):
+            mfcc = extract_single_mfcc(path)
+            np.save(os.path.join(FEATURES_DIR, fname.replace(".wav", ".npy")), mfcc)
+
+    start = time.time()
+
+    if mode == 'parallel':
+        with mp.Pool(mp.cpu_count()) as pool:
+            pool.map(process_and_save, entries)
+    else:
+        for entry in entries:
+            process_and_save(entry)
+
+    duration = time.time() - start
+    return round(duration, 2)
