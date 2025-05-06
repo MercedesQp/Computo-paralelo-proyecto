@@ -19,24 +19,14 @@ La estructura final debe verse así:
 
 La estructura final debe verse así:
 
+
 Computo-paralelo-proyecto/
-
-Dataset
-
-   19demarzo
-   
-   bailen
-   
-   batalla_arapiles
-   
-transcript.txt
-
-Preprocesamiento
-
-entrenamiento_modelos.py
-
-main.py
-
-README.md
-
-
+├── Dataset/
+│ ├── 19demarzo/
+│ ├── bailen/
+│ └── batalla_arapiles/
+├── transcript.txt
+├── Preprocesamiento
+├── entrenamiento_modelos.py
+├── main.py
+└── README.md
