@@ -24,11 +24,11 @@ Computo-paralelo-proyecto/
 
 ├── Dataset/
 
-│ ├── 19demarzo/
+│ ├──── 19demarzo/
 
-│ ├── bailen/
+│ ├──── bailen/
 
-│ └── batalla_arapiles/
+│ └──── batalla_arapiles/
 
 ├── transcript.txt
 
