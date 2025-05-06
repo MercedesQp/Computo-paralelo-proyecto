@@ -12,16 +12,19 @@ Puedes descargar el dataset completo comprimido desde el siguiente enlace:
 Una vez descargado:
 
 1. Descomprime el archivo.
-2. Coloca la carpeta `Dataset` dentro de la raíz del proyecto, junto al archivo `transcript.txt`.
+2. Coloca todo el contenido dentro de la raíz del proyecto.
+   El archivo transcript.txt ya viene incluido dentro del zip.
 
 La estructura final debe verse así:
 
 Computo-paralelo-proyecto/
 ├── Dataset/
-│ ├── 19demarzo/
-│ ├── bailen/
-│ ├── batalla_arapiles/
+│   ├── 19demarzo/
+│   ├── bailen/
+│   └── batalla_arapiles/
 ├── transcript.txt
-├── Preprocesamiento/
+├── Preprocesamiento
 ├── entrenamiento_modelos.py
 ├── main.py
+├── README.md
+
