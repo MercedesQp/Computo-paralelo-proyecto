@@ -17,6 +17,8 @@ Una vez descargado:
 
 La estructura final debe verse así:
 
+La estructura final debe verse así:
+
 Computo-paralelo-proyecto/
 ├── Dataset/
 │   ├── 19demarzo/
@@ -26,5 +28,6 @@ Computo-paralelo-proyecto/
 ├── Preprocesamiento
 ├── entrenamiento_modelos.py
 ├── main.py
-├── README.md
+└── README.md
+
 
