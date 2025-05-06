@@ -22,6 +22,7 @@ La estructura final debe verse así:
 
 Computo-paralelo-proyecto/
 ├── Dataset/
+
 │ ├── 19demarzo/
 │ ├── bailen/
 │ └── batalla_arapiles/
