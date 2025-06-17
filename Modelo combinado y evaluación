@@ -1,0 +1,76 @@
+def compute_combined_features(args):
+    fname, label = args
+    path = os.path.join("data/processed", fname.replace(".wav", ".npy"))
+    if not os.path.exists(path): return None
+    mfcc = np.load(path)
+    with open("models/hmm/hmm_models.pkl", "rb") as f:
+        hmm_models = pickle.load(f)
+    mfcc_mean = np.mean(mfcc, axis=0)
+    hmm_scores = [model.score(mfcc) for model in hmm_models.values()]
+    combined = np.concatenate([mfcc_mean, hmm_scores])
+    return (combined, label)
+
+def train_combined_hmm_svm():
+    import csv
+    with open("data/labels.csv", "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader)
+        tasks = [(fname, label) for fname, label in reader]
+
+    with Pool(NUM_CORES) as pool:
+        results = pool.map(compute_combined_features, tasks)
+
+    filtered = [r for r in results if r is not None]
+    X, y = zip(*filtered)
+
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y_enc, test_size=0.2, random_state=42)
+    model = SVC(kernel="rbf", probability=True)
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+    report = classification_report(y_test, y_pred, target_names=le.classes_)
+    print(report)
+
+    os.makedirs("models/combined", exist_ok=True)
+    with open("models/combined/combined_model.pkl", "wb") as f:
+        pickle.dump({"model": model, "label_encoder": le}, f)
+
+# Evaluación de modelos
+def evaluate_models():
+    import csv
+    with open("models/hmm/hmm_models.pkl", "rb") as f:
+        hmm_models = pickle.load(f)
+    with open("models/svm/svm_model.pkl", "rb") as f:
+        svm_data = pickle.load(f)
+        svm_model = svm_data["model"]
+        le = svm_data["label_encoder"]
+
+    correct_hmm = 0
+    correct_svm = 0
+    total = 0
+    with open("data/labels.csv", "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader)
+        for fname, true_label in reader:
+            path = os.path.join("data/processed", fname.replace(".wav", ".npy"))
+            if not os.path.exists(path): continue
+            mfcc = np.load(path)
+
+            # HMM
+            scores = {label: model.score(mfcc) for label, model in hmm_models.items()}
+            hmm_pred = max(scores, key=scores.get)
+            if hmm_pred == true_label:
+                correct_hmm += 1
+
+            # SVM
+            vec = np.mean(mfcc, axis=0).reshape(1, -1)
+            pred_svm_idx = svm_model.predict(vec)[0]
+            pred_svm_label = le.inverse_transform([pred_svm_idx])[0]
+            if pred_svm_label == true_label:
+                correct_svm += 1
+            total += 1
+
+    print(f"Accuracy HMM: {correct_hmm}/{total} = {correct_hmm/total:.2%}")
+    print(f"Accuracy SVM: {correct_svm}/{total} = {correct_svm/total:.2%}")
