@@ -5,8 +5,8 @@ import numpy as np
 import librosa
 
 # Configuración
-TRANSCRIPT_PATH = r"/Users/italyzayas/Documents/computo paralelo/Proyecto/transcript.txt"
-AUDIO_BASE_PATH = r"/Users/italyzayas/Documents/computo paralelo/Proyecto/Dataset"
+TRANSCRIPT_PATH = "transcript.txt"
+AUDIO_BASE_PATH = "Dataset"
 RAW_AUDIO_DIR = r"data/raw"
 FEATURES_DIR = r"data/processed"
 LABELS_CSV = r"data/labels.csv"
